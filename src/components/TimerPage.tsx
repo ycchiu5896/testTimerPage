@@ -1,65 +1,53 @@
 import { useState, useEffect, useCallback } from 'react';
 import PlayerTurn from './PlayerTurn';
-import Timer from './Timer';
+import DisplayTimer from './DisplayTimer';
 import '../App.css';
 
-interface PlayerTime {
+interface PlayerTimeLeft {
     white: number;
     black: number;
 }
 
+interface TurnDuration {
+    hours: number;
+    minutes: number;
+    seconds: number;
+}
+
+const TURN_DURATION: TurnDuration = {hours: 0, minutes: 1, seconds: 5};
+
 export default function TimerPage({onStateChange}: {onStateChange: (winner: 'white' | 'black' | null) => void}) {
 
-    const TURNDURATION = {hours: 0, minutes: 0, seconds: 5}
+    const SECONDS_GAME_END = 0;
 
-    const [playerTime, setPlayerTime] = useState<PlayerTime>({
-        white: convertToSeconds(TURNDURATION),
-        black: convertToSeconds(TURNDURATION),
+    const [PlayerTimeLeft, setPlayerTimeLeft] = useState<PlayerTimeLeft>({
+        white: convertToSeconds(TURN_DURATION),
+        black: convertToSeconds(TURN_DURATION),
     });
 
     const [playerTurn, setPlayerTurn] = useState<'white' | 'black'>('white');
 
     const [inGame, setInGame] = useState(false);
     
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setPlayerTime((prev) => {
-                if (!inGame) {
-                    return prev;
-                }
-                const newTime = subtractTime(prev, playerTurn);
-                if (newTime[playerTurn] <= 0) {
-                    onStateChange(playerTurn === 'white' ? 'black' : 'white');
-                    resetGame();
-                    return resetTimers();
-                }
-                return newTime;
-            });
-        }, 1000);
-        return () => {
-            clearInterval(interval);
-        };
-    }, [playerTurn, inGame]);
-
-    const subtractTime = useCallback((time: PlayerTime, player: 'white' | 'black'): PlayerTime => {
+    const subtractTime = useCallback((time: PlayerTimeLeft, player: 'white' | 'black'): PlayerTimeLeft => {
         return {
             ...time,
             [player]: time[player] - 1000,
         };
     }, []);
 
-    const resetTimers = useCallback((): PlayerTime => {
+    const resetTimers = useCallback((): PlayerTimeLeft => {
         return {
-            white: convertToSeconds(TURNDURATION),
-            black: convertToSeconds(TURNDURATION),
+            white: convertToSeconds(TURN_DURATION),
+            black: convertToSeconds(TURN_DURATION),
         };
     }, []);
 
-    function resetGame() {
-        setPlayerTime(resetTimers());
+    const resetGame = useCallback(() => {
+        setPlayerTimeLeft(resetTimers());
         setInGame(false);
         setPlayerTurn('white');
-    }
+    }, [resetTimers]);
 
     function switchPlayer() {
         setPlayerTurn((prev) => prev === 'white' ? 'black' : 'white');
@@ -69,17 +57,41 @@ export default function TimerPage({onStateChange}: {onStateChange: (winner: 'whi
         setInGame(true);
     }
 
-    function convertToSeconds (time: {hours:number, minutes:number, seconds:number}) {
+    function convertToSeconds (time: TurnDuration): number {
         return (time.hours * 3600 + time.minutes * 60 + time.seconds) * 1000;
     }
+
+    //decrement time every second
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setPlayerTimeLeft((prev) => {
+                if (!inGame) {
+                    return prev;
+                }
+                const newTime = subtractTime(prev, playerTurn);
+                return newTime;
+            });
+        }, 1000);
+        return () => {
+            clearInterval(interval);
+        };
+    }, [playerTurn, inGame, subtractTime]);
+
+    //check if there is a winner
+    useEffect(() => {
+        if (PlayerTimeLeft[playerTurn] <= SECONDS_GAME_END) {
+            onStateChange(playerTurn === 'white' ? 'black' : 'white');
+            resetGame();
+        }
+    }, [PlayerTimeLeft, playerTurn, onStateChange, resetGame]);
 
     return (
         <div className='parent-container'>
             <div className='timer-page'>
                 {
-                    Object.entries(playerTime).map(([player, time], index) => (
+                    Object.entries(PlayerTimeLeft).map(([player, time], index) => (
                         <div className={`${player}-container`} key={`${player}-${index}`}> 
-                            <Timer player={player} time={time}/>
+                            <DisplayTimer player={player} time={time}/>
                             {playerTurn === player && <PlayerTurn startGame={startGame} inGame={inGame} switchPlayer={switchPlayer}/>}
                         </div>
                     ))

@@ -1,5 +1,5 @@
 
-export default function Timer({player, time}: {player:string, time:number}) {
+export default function DisplayTimer({player, time}: {player:string, time:number}) {
 
     function convertToClock(time: number){
         const hours = Math.floor(time / 3600000);
