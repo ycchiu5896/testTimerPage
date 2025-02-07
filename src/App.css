@@ -12,9 +12,35 @@
   color:black;
 }
 
+.black-container, .white-container {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .timer-page {
   display: flex;
   flex-direction: row;
   width: 100%;
-  height: 100%;
+  height: 100vh; 
+}
+
+.winner-page{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.black-wins{
+  background-color: black;
+  color: white;
+}
+
+.white-wins{
+  background-color: white;
+  color: black;
 }

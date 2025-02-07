@@ -29,7 +29,7 @@ export default function TimerPage({onStateChange}: {onStateChange: (winner: 'whi
                 }
                 const newTime = subtractTime(prev, playerTurn);
                 if (newTime[playerTurn] <= 0) {
-                    onStateChange(playerTurn);
+                    onStateChange(playerTurn === 'white' ? 'black' : 'white');
                     resetGame();
                     return resetTimers();
                 }
@@ -74,15 +74,17 @@ export default function TimerPage({onStateChange}: {onStateChange: (winner: 'whi
     }
 
     return (
-        <div className='timer-page'>
-            {
-                Object.entries(playerTime).map(([player, time], index) => (
-                    <div className={`${player}-container`} key={`${player}-${index}`}> 
-                        <Timer player={player} time={time}/>
-                        {playerTurn === player && <PlayerTurn startGame={startGame} inGame={inGame} switchPlayer={switchPlayer}/>}
-                    </div>
-                ))
-            }
+        <div className='parent-container'>
+            <div className='timer-page'>
+                {
+                    Object.entries(playerTime).map(([player, time], index) => (
+                        <div className={`${player}-container`} key={`${player}-${index}`}> 
+                            <Timer player={player} time={time}/>
+                            {playerTurn === player && <PlayerTurn startGame={startGame} inGame={inGame} switchPlayer={switchPlayer}/>}
+                        </div>
+                    ))
+                }
+            </div>
         </div>
     )
 }
